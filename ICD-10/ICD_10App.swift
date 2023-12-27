@@ -12,6 +12,8 @@ struct ICD_10App: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(ViewModel())
+                .environmentObject(UserDefaultsManager())
         }
     }
 }
