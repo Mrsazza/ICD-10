@@ -9,8 +9,8 @@ import SwiftUI
 
 class ViewModel: ObservableObject {
     @Published var drugs: Drugs?
-    @Published var filter: String = ""
-    func fetchData() {
+//    @Published var filter: String = ""
+    func fetchData(filter: String) {
         guard let url = URL(string: "https://rxnav.nlm.nih.gov/REST/Prescribe/drugs.json?name=\(filter)") else {
             print("URL Error")
             return

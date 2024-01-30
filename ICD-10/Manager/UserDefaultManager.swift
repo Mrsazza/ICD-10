@@ -11,10 +11,12 @@ class UserDefaultsManager: ObservableObject {
 //    static let shared = UserDefaultsManager()
     let defaults = UserDefaults.standard
     @Published var medications: [Medication] = []
+    
     func saveMedications(_ medications: [Medication]) {
         let encoder = JSONEncoder()
         if let encoded = try? encoder.encode(medications) {
             defaults.set(encoded, forKey: UserDefaultKey.medicationsKey)
+            populateMedications()
         }
     }
     
@@ -52,36 +54,36 @@ class UserDefaultsManager: ObservableObject {
            }
        }
     
-    func appendDrug(toMedicationId medicationId: String, newDrug: ConceptProperty) {
-           var currentMedications = getMedications() ?? [] // Retrieve existing medications or start with an empty array
-           
-           if let index = currentMedications.firstIndex(where: { $0.id == medicationId }) {
-               // Found the Medication with the specified ID
-               var medicationToUpdate = currentMedications[index]
-               medicationToUpdate.drugs.append(newDrug) // Append the new drug
-               
-               // Update the medication in the array
-               currentMedications[index] = medicationToUpdate
-               
-               // Save the updated array back to UserDefaults
-               saveMedications(currentMedications)
-           }
-       }
+//    func appendDrug(toMedicationId medicationId: String, newDrug: ConceptProperty) {
+//           var currentMedications = getMedications() ?? [] // Retrieve existing medications or start with an empty array
+//           
+//           if let index = currentMedications.firstIndex(where: { $0.id == medicationId }) {
+//               // Found the Medication with the specified ID
+//               var medicationToUpdate = currentMedications[index]
+//               medicationToUpdate.drugs.append(newDrug) // Append the new drug
+//               
+//               // Update the medication in the array
+//               currentMedications[index] = medicationToUpdate
+//               
+//               // Save the updated array back to UserDefaults
+//               saveMedications(currentMedications)
+//           }
+//       }
     
-    func removeDrug(fromMedicationId medicationId: String, drugToRemove: ConceptProperty) {
-           var currentMedications = getMedications() ?? []
-
-           if let index = currentMedications.firstIndex(where: { $0.id == medicationId }) {
-               var medicationToUpdate = currentMedications[index]
-               medicationToUpdate.drugs.removeAll(where: { $0 == drugToRemove })
-
-               // Update the medication in the array
-               currentMedications[index] = medicationToUpdate
-
-               // Save the updated array back to UserDefaults
-               saveMedications(currentMedications)
-           }
-       }
+//    func removeDrug(fromMedicationId medicationId: String, drugToRemove: ConceptProperty) {
+//           var currentMedications = getMedications() ?? []
+//
+//           if let index = currentMedications.firstIndex(where: { $0.id == medicationId }) {
+//               var medicationToUpdate = currentMedications[index]
+//               medicationToUpdate.drugs.removeAll(where: { $0 == drugToRemove })
+//
+//               // Update the medication in the array
+//               currentMedications[index] = medicationToUpdate
+//
+//               // Save the updated array back to UserDefaults
+//               saveMedications(currentMedications)
+//           }
+//       }
 }
 
 enum UserDefaultKey {

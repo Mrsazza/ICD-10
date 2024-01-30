@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Medication: Identifiable, Codable {
+struct Medication: Identifiable, Codable, Equatable {
     var id: String = UUID().uuidString
     var name: String
     var drugs: [ConceptProperty]

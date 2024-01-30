@@ -28,6 +28,7 @@ struct MedicationView: View {
                         HStack{
                             NavigationLink {
                                 DrugListView(medication: item)
+                                    .environmentObject(userDefault)
                             } label: {
                                 HStack{
                                     Text("\(item.name)")
@@ -161,33 +162,186 @@ struct AddMedicationView: View {
 struct DrugListView: View {
     @EnvironmentObject var userDefault: UserDefaultsManager
     @State var medication: Medication
+    
+    @EnvironmentObject var vm: ViewModel
+    @State private var showSheet: Bool = false
+    @State private var selectedDrug: ConceptProperty?
+    @State private var isSearching = false
+    @State private var refreshedView = false
+    @FocusState var isTextFieldFocused: Bool
+    
     var body: some View {
         VStack(alignment: .leading){
-            Text("List Of Drugs")
-                .padding()
-                .font(.headline)
-            Divider()
-            List{
-                ForEach(medication.drugs, id: \.self) { drug in
-                    Text("\(drug.name)")
-                }
-                .onDelete { index in
-                    deleteDrug(at: index)
-                }
-                
+            SearchBar(vm: vm, isSearching: $isSearching,isTextFieldFocused: _isTextFieldFocused)
+            if isSearching {
+                SearchResultsView(vm: vm, medication: $medication, isSearching: $isSearching, isTextFieldFocused: _isTextFieldFocused)
+                    .onDisappear {
+                        userDefault.populateMedications()
+                    }
+            } else {
+                medicationList
+                    .onAppear{
+                        userDefault.populateMedications()
+                    }
             }
-            .listStyle(.plain)
-            .toolbar(content: {
-                EditButton()
-            })
+        }
+        .onChange(of: userDefault.medications){newValue in
+            refreshedView.toggle()
         }
         .navigationTitle("\(medication.name)")
         .navigationBarTitleDisplayMode(.inline)
     }
     
+    private var medicationList: some View{
+        VStack{
+            Text("List Of Drugs")
+                .padding()
+                .font(.headline)
+            Divider()
+            if refreshedView{
+                List{
+                    ForEach(medication.drugs, id: \.self) { drug in
+                        Text("\(drug.name)")
+                    }
+                    .onDelete { index in
+                        deleteDrug(at: index)
+                    }
+                    
+                }
+                .listStyle(.plain)
+                .toolbar(content: {
+                    EditButton()
+                })
+            } else{
+                List{
+                    ForEach(medication.drugs, id: \.self) { drug in
+                        Text("\(drug.name)")
+                    }
+                    .onDelete { index in
+                        deleteDrug(at: index)
+                    }
+                    
+                }
+                .listStyle(.plain)
+                .toolbar(content: {
+                    EditButton()
+                })
+            }
+        }
+    }
+    
     func deleteDrug(at offsets: IndexSet) {
         var updatedMedication = medication
         updatedMedication.drugs.remove(atOffsets: offsets)
+
+        userDefault.updateMedication(updatedMedication)
+        medication = updatedMedication
+    }
+}
+
+struct SearchBar: View {
+    @ObservedObject var vm: ViewModel
+    @Binding var isSearching: Bool
+    @State var filter: String = ""
+    @FocusState var isTextFieldFocused: Bool
+    var body: some View {
+        HStack {
+            TextField("Search Here", text: $filter)
+                .focused($isTextFieldFocused)
+                .onChange(of: isTextFieldFocused) { isFocused in
+                    if isFocused {
+                        // began editing...
+                        isSearching = true
+                    } else {
+                        // ended editing...
+                        isSearching = false
+                    }
+                }
+                .onSubmit {
+                    vm.fetchData(filter: filter)
+                }
+            .onChange(of: filter) { newValue in
+                vm.fetchData(filter: filter)
+            }
+            Button(action: {
+                vm.fetchData(filter: filter)
+            }, label: {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                }
+            })
+            if isTextFieldFocused{
+                Button {
+                    isTextFieldFocused = false
+                } label: {
+                    Image(systemName: "xmark")
+                }
+
+            }
+        }
+        .padding()
+    }
+}
+
+struct SearchResultsView: View {
+    @EnvironmentObject var userDefault: UserDefaultsManager
+    @ObservedObject var vm: ViewModel
+    @Binding var medication: Medication
+    @Binding var isSearching: Bool
+    @FocusState var isTextFieldFocused: Bool
+    var body: some View {
+        VStack{
+            ScrollView {
+                if vm.drugs != nil {
+                    if (vm.drugs!.drugGroup.conceptGroup == nil) {
+                        Text("No Result Found")
+                            .padding()
+                    } else {
+                        VStack(alignment: .leading, spacing: 10) {
+                            if vm.drugs != nil && vm.drugs?.drugGroup.conceptGroup != nil {
+                                ForEach (((vm.drugs?.drugGroup.conceptGroup)!), id:\.self){ item in
+                                    if item.conceptProperties != nil {
+                                        ForEach(item.conceptProperties!, id: \.self){ drug in
+                                            VStack(alignment:.leading){
+                                                Button {
+                                                    addDrug(newDrug: drug)
+//                                                    userDefault.appendDrug(toMedicationId: medication.id, newDrug: drug)
+//                                                    userDefault.populateMedications()
+//                                                    isSearching = false
+                                                   isTextFieldFocused = false
+                                                } label: {
+                                                    HStack{
+                                                        Text("Name:")
+                                                        Text(drug.name)
+                                                            .padding()
+                                                    }
+                                                }
+
+                                                
+                                                //                                            Spacer()
+                                                //                                            HStack{
+                                                //                                                Text("Synonym:")
+                                                //                                                Text(drug.synonym)
+                                                //                                                    .padding()
+                                                //                                            }
+                                            }
+                                            Divider()
+                                                .padding(.all,10)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
+        }
+    }
+    
+    func addDrug(newDrug: ConceptProperty) {
+        var updatedMedication = medication
+        updatedMedication.drugs.append(newDrug)
 
         userDefault.updateMedication(updatedMedication)
         medication = updatedMedication
