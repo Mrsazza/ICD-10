@@ -172,8 +172,8 @@
             filePath = "ICD-10/View/MedicationView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "309"
-            endingLineNumber = "309"
+            startingLineNumber = "379"
+            endingLineNumber = "379"
             landmarkName = "body"
             landmarkType = "24">
             <Locations>
@@ -235,8 +235,8 @@
             filePath = "ICD-10/View/MedicationView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "310"
-            endingLineNumber = "310"
+            startingLineNumber = "380"
+            endingLineNumber = "380"
             landmarkName = "body"
             landmarkType = "24">
             <Locations>
@@ -314,10 +314,10 @@
             filePath = "ICD-10/View/MedicationView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "203"
-            endingLineNumber = "203"
-            landmarkName = "medicationList"
-            landmarkType = "24">
+            startingLineNumber = "222"
+            endingLineNumber = "222"
+            landmarkName = "DrugListView"
+            landmarkType = "14">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

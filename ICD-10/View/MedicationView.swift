@@ -126,6 +126,10 @@ struct AddMedicationView: View {
     @EnvironmentObject var userDefault: UserDefaultsManager
     @Environment(\.dismiss) var dismiss
     @State var medication: Medication = Medication(name: "", drugs: [])
+    @EnvironmentObject var vm: ViewModel
+    @FocusState var isTextFieldFocused: Bool
+    @State private var isSearching = false
+    @State private var refreshedView = false
     var body: some View {
         VStack{
             ZStack{
@@ -152,6 +156,21 @@ struct AddMedicationView: View {
                     Text("Save")
                 })
                 .buttonStyle(.bordered)
+                if medication.name != ""{
+                    SearchBar(vm: vm, isSearching: $isSearching,isTextFieldFocused: _isTextFieldFocused)
+                    
+                    if isSearching {
+                        SearchResultsView(vm: vm, medication: $medication, isSearching: $isSearching, isTextFieldFocused: _isTextFieldFocused)
+                            .onDisappear {
+                                userDefault.populateMedications()
+                            }
+                    } else {
+                        MedicationList(refreshedView:refreshedView , medication: $medication)
+                            .onAppear{
+                                userDefault.populateMedications()
+                            }
+                    }
+                }
             }
             .padding()
             Spacer()
@@ -179,7 +198,7 @@ struct DrugListView: View {
                         userDefault.populateMedications()
                     }
             } else {
-                medicationList
+                MedicationList(refreshedView: refreshedView, medication: $medication)
                     .onAppear{
                         userDefault.populateMedications()
                     }
@@ -192,7 +211,58 @@ struct DrugListView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    private var medicationList: some View{
+//    private var medicationList: some View{
+//        VStack{
+//            Text("List Of Drugs")
+//                .padding()
+//                .font(.headline)
+//            Divider()
+//            if refreshedView{
+//                List{
+//                    ForEach(medication.drugs, id: \.self) { drug in
+//                        Text("\(drug.name)")
+//                    }
+//                    .onDelete { index in
+//                        deleteDrug(at: index)
+//                    }
+//                    
+//                }
+//                .listStyle(.plain)
+//                .toolbar(content: {
+//                    EditButton()
+//                })
+//            } else{
+//                List{
+//                    ForEach(medication.drugs, id: \.self) { drug in
+//                        Text("\(drug.name)")
+//                    }
+//                    .onDelete { index in
+//                        deleteDrug(at: index)
+//                    }
+//                    
+//                }
+//                .listStyle(.plain)
+//                .toolbar(content: {
+//                    EditButton()
+//                })
+//            }
+//        }
+//    }
+//    
+//    func deleteDrug(at offsets: IndexSet) {
+//        var updatedMedication = medication
+//        updatedMedication.drugs.remove(atOffsets: offsets)
+//
+//        userDefault.updateMedication(updatedMedication)
+//        medication = updatedMedication
+//    }
+}
+
+struct MedicationList: View {
+    @EnvironmentObject var userDefault: UserDefaultsManager
+    @State var refreshedView:Bool
+    @Binding var medication: Medication
+    var body: some View {
         VStack{
             Text("List Of Drugs")
                 .padding()
@@ -246,7 +316,7 @@ struct SearchBar: View {
     @FocusState var isTextFieldFocused: Bool
     var body: some View {
         HStack {
-            TextField("Search Here", text: $filter)
+            TextField("Search Drug Here", text: $filter)
                 .focused($isTextFieldFocused)
                 .onChange(of: isTextFieldFocused) { isFocused in
                     if isFocused {
